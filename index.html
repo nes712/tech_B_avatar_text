@@ -1,1 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moving Text</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
 
+        .background-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 0;
+        }
+
+        .text-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 500px;
+            z-index: 1;
+            pointer-events: none;
+            clip-path: path('M100,250 Q400,50 700,250 Q400,450 100,250');
+            -webkit-clip-path: path('M100,250 Q400,50 700,250 Q400,450 100,250');
+            mask: url(#circleMask);
+            -webkit-mask: url(#circleMask);
+        }
+
+        .input-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            z-index: 1000;
+            align-items: center;
+        }
+
+        #textInput {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border-radius: 25px;
+            width: 300px;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        #textInput:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #textInput::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        #colorButton {
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        #colorButton:hover {
+            color: white;
+        }
+
+        #captureButton {
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        #captureButton:hover {
+            color: white;
+        }
+
+
+
+        .color-picker-container {
+            position: absolute;
+            right: -320px;
+            bottom: 0;
+            background: rgba(30, 30, 30, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .color-picker-container.active {
+            display: block;
+        }
+
+        .gradient-picker {
+            width: 280px;
+            padding: 10px;
+        }
+
+        .gradient-preview {
+            width: 100%;
+            height: 30px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .color-inputs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .color-input-group {
+            flex: 1;
+        }
+
+        .color-input-group label {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        .color-input {
+            width: 100%;
+            height: 30px;
+            padding: 0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes wave {
+            0% { transform: translateY(0px); }
+            25% { transform: translateY(-10px); }
+            50% { transform: translateY(0px); }
+            75% { transform: translateY(10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .moving-text {
+            position: absolute;
+            white-space: nowrap;
+            pointer-events: none;
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3),
+                         0 0 10px rgba(255, 255, 255, 0.2),
+                         0 0 15px rgba(255, 255, 255, 0.1);
+        }
+
+        .sparkle {
+            animation: sparkle 2s infinite ease-in-out;
+        }
+
+        .wave {
+            animation: wave 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-container" id="backgroundContainer">
+        <svg width="100%" height="100%" viewBox="0 0 800 500">
+            <!-- 눈 배경 -->
+            <path d="M100,250 Q400,50 700,250 Q400,450 100,250" 
+                  fill="white" 
+                  stroke="rgb(0,255,200)" 
+                  stroke-width="4"/>
+            <!-- 속눈썹 -->
+            <line x1="280" y1="130" x2="250" y2="70"
+                  stroke="rgb(0,255,200)" 
+                  stroke-width="4"
+                  stroke-linecap="round"/>
+            <line x1="400" y1="110" x2="400" y2="50"
+                  stroke="rgb(0,255,200)" 
+                  stroke-width="4"
+                  stroke-linecap="round"/>
+            <line x1="520" y1="130" x2="550" y2="70"
+                  stroke="rgb(0,255,200)" 
+                  stroke-width="4"
+                  stroke-linecap="round"/>
+            <!-- 동공 -->
+            <circle cx="400" cy="250" r="80" 
+                    fill="black"/>
+        </svg>
+    </div>
+
+    <div class="text-container" id="textContainer">
+        <svg width="0" height="0">
+            <defs>
+                <mask id="circleMask">
+                    <rect width="800" height="500" fill="black"/>
+                    <circle cx="400" cy="250" r="80" fill="white"/>
+                </mask>
+            </defs>
+        </svg>
+    </div>
+
+    <div class="input-container">
+        <input type="text" id="textInput" placeholder="Type your message...">
+        <button id="colorButton"><i class="fas fa-palette"></i></button>
+        <button id="captureButton"><i class="fas fa-camera"></i></button>
+        <div class="color-picker-container">
+            <div class="gradient-picker">
+                <div class="gradient-preview"></div>
+                <div class="color-inputs">
+                    <div class="color-input-group">
+                        <label>Start Color</label>
+                        <input type="color" class="color-input" id="startColor" value="#ff0000">
+                    </div>
+                    <div class="color-input-group">
+                        <label>End Color</label>
+                        <input type="color" class="color-input" id="endColor" value="#00ff00">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const textInput = document.getElementById('textInput');
+        const colorButton = document.getElementById('colorButton');
+        const colorPicker = document.querySelector('.color-picker-container');
+        const startColorInput = document.getElementById('startColor');
+        const endColorInput = document.getElementById('endColor');
+        const gradientPreview = document.querySelector('.gradient-preview');
+        const maskedContent = document.getElementById('maskedContent');
+        
+        let currentGradient = {
+            start: '#ffffff',
+            end: '#ffffff'
+        };
+
+        function createMovingText(text) {
+            const element = document.createElement('div');
+            element.className = 'moving-text';
+            element.textContent = text;
+            
+            // 랜덤 크기 설정 (36px ~ 96px)
+            const randomSize = Math.floor(Math.random() * (96 - 36 + 1)) + 36;
+            element.style.fontSize = `${randomSize}px`;
+            
+            // 랜덤 효과 적용
+            const effects = ['sparkle', 'wave', 'sparkle wave'];
+            const randomEffect = effects[Math.floor(Math.random() * effects.length)];
+            element.className = `moving-text ${randomEffect}`;
+            
+            // 시작 위치 설정 (눈의 흰색 부분 안에서)
+            const startFromLeft = Math.random() < 0.5;
+            const centerY = 250;
+            // 글자 크기에 따른 상하 위치 조정
+            const fontSize = parseInt(element.style.fontSize);
+            const yMin = 170 + fontSize/2; // 텍스트 크기를 고려한 위쪽 경계를 더 위로 조정
+            const yMax = 290 - fontSize/2; // 텍스트 크기를 고려한 아래쪽 경계
+            const verticalPosition = Math.random() * (yMax - yMin) + yMin;
+
+            // 그라데이션 적용
+            const gradient = `linear-gradient(to right, ${currentGradient.start}, ${currentGradient.end})`;
+            element.style.backgroundImage = gradient;
+
+            element.style.top = verticalPosition + 'px';
+            
+            // 텍스트 컨테이너에 텍스트 추가
+            textContainer.appendChild(element);
+            
+            // 실제 텍스트 너비 계산
+            const textWidth = element.offsetWidth;
+            
+            if (startFromLeft) {
+                element.style.left = '100px'; // 눈의 왼쪽 경계
+                let position = 100;
+                function animate() {
+                    position += 2; // 이동 속도
+                    element.style.left = position + 'px';
+                    if (position > 700) { // 눈의 오른쪽 경계
+                        position = 100;
+                    }
+                    requestAnimationFrame(animate);
+                }
+                animate();
+            } else {
+                element.style.left = '700px'; // 눈의 오른쪽 경계
+                let position = 700;
+                function animate() {
+                    position -= 2; // 이동 속도
+                    element.style.left = position + 'px';
+                    if (position < 100) { // 눈의 왼쪽 경계
+                        position = 700;
+                    }
+                    requestAnimationFrame(animate);
+                }
+                animate();
+            }
+        }
+
+        function updateGradient() {
+            const gradient = `linear-gradient(to right, ${currentGradient.start}, ${currentGradient.end})`;
+            gradientPreview.style.background = gradient;
+        }
+
+        function handleSend() {
+            const text = textInput.value.trim();
+            if (text) {
+                createMovingText(text);
+                textInput.value = '';
+            }
+        }
+
+        // 색상 선택 UI 토글
+        colorButton.addEventListener('click', () => {
+            colorPicker.classList.toggle('active');
+        });
+
+        // 색상 변경 이벤트 처리
+        startColorInput.addEventListener('input', (e) => {
+            currentGradient.start = e.target.value;
+            updateGradient();
+        });
+
+        endColorInput.addEventListener('input', (e) => {
+            currentGradient.end = e.target.value;
+            updateGradient();
+        });
+
+        // Enter 키로 텍스트 전송
+        textInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSend();
+            }
+        });
+
+        // SVG 경로를 마스크로 설정
+        const maskPath = "M100,250 Q250,50 400,250 Q250,450 100,250";
+        const svgMask = `
+            <svg width="500" height="500">
+                <path d="${maskPath}" fill="white"/>
+            </svg>
+        `;
+        const svgURL = 'data:image/svg+xml;base64,' + btoa(svgMask);
+        maskedContent.style.webkitMaskImage = `url(${svgURL})`;
+        maskedContent.style.maskImage = `url(${svgURL})`;
+
+        // 캡쳐 기능
+        const captureButton = document.getElementById('captureButton');
+        
+        captureButton.addEventListener('click', () => {
+            // html2canvas 라이브러리 동적 로드
+            if (!window.html2canvas) {
+                const script = document.createElement('script');
+                script.src = 'https://html2canvas.hertzen.com/dist/html2canvas.min.js';
+                script.onload = captureEye;
+                document.body.appendChild(script);
+            } else {
+                captureEye();
+            }
+        });
+
+        function captureEye() {
+            const eyeArea = document.querySelector('.background-container');
+            html2canvas(eyeArea, {
+                backgroundColor: null,
+                scale: 2, // 고해상도 캡쳐
+                logging: false,
+            }).then(canvas => {
+                // 캡쳐된 이미지를 다운로드
+                const link = document.createElement('a');
+                link.download = 'eye-capture.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        // 초기 그라데이션 미리보기 설정
+        updateGradient();
+    </script>
+</body>
+</html>
