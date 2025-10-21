@@ -212,19 +212,19 @@
             <path d="M100,250 Q400,50 700,250 Q400,450 100,250" 
                   fill="white" 
                   stroke="rgb(0,255,200)" 
-                  stroke-width="4"/>
+                  stroke-width="10"/>
             <!-- 속눈썹 -->
             <line x1="280" y1="130" x2="250" y2="70"
                   stroke="rgb(0,255,200)" 
-                  stroke-width="4"
+                  stroke-width="10"
                   stroke-linecap="round"/>
             <line x1="400" y1="110" x2="400" y2="50"
                   stroke="rgb(0,255,200)" 
-                  stroke-width="4"
+                  stroke-width="10"
                   stroke-linecap="round"/>
             <line x1="520" y1="130" x2="550" y2="70"
                   stroke="rgb(0,255,200)" 
-                  stroke-width="4"
+                  stroke-width="10"
                   stroke-linecap="round"/>
             <!-- 동공 -->
             <circle cx="400" cy="250" r="80" 
@@ -283,8 +283,8 @@
             element.className = 'moving-text';
             element.textContent = text;
             
-            // 랜덤 크기 설정 (36px ~ 96px)
-            const randomSize = Math.floor(Math.random() * (96 - 36 + 1)) + 36;
+            // 랜덤 크기 설정 (36px ~ 120px)
+            const randomSize = Math.floor(Math.random() * (120 - 36 + 1)) + 36;
             element.style.fontSize = `${randomSize}px`;
             
             // 랜덤 효과 적용
@@ -297,7 +297,7 @@
             const centerY = 250;
             // 글자 크기에 따른 상하 위치 조정
             const fontSize = parseInt(element.style.fontSize);
-            const yMin = 170 + fontSize/2; // 텍스트 크기를 고려한 위쪽 경계를 더 위로 조정
+            const yMin = 130 + fontSize/2; // 텍스트 크기를 고려한 위쪽 경계를 더 위로 조정
             const yMax = 290 - fontSize/2; // 텍스트 크기를 고려한 아래쪽 경계
             const verticalPosition = Math.random() * (yMax - yMin) + yMin;
 
