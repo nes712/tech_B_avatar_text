@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Moving Text</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         body {
             margin: 0;
@@ -17,32 +17,30 @@
             flex-direction: column;
         }
 
-        .background-container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 800px;
-            height: 500px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 0;
-        }
-
         .text-container {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 800px;
-            height: 500px;
+            width: 1000px;
+            height: 700px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 0;
+            clip-path: path('M200,350 Q500,50 800,350 Q500,620 200,350 Z');
+            -webkit-clip-path: path('M200,350 Q500,50 800,350 Q500,620 200,350 Z');
+        }
+
+        .background-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 1000px;
+            height: 700px;
             z-index: 1;
             pointer-events: none;
-            clip-path: path('M100,250 Q400,50 700,250 Q400,450 100,250');
-            -webkit-clip-path: path('M100,250 Q400,50 700,250 Q400,450 100,250');
-            mask: url(#circleMask);
-            -webkit-mask: url(#circleMask);
         }
 
         .input-container {
@@ -184,6 +182,30 @@
             color: rgba(255, 255, 255, 0.5);
         }
 
+        .delete-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            margin-left: 5px;
+        }
+
+        .delete-button:hover {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+
+        .delete-button i {
+            font-size: 12px;
+        }
+
         .gradient-picker {
             width: 280px;
             padding: 10px;
@@ -257,42 +279,37 @@
     </style>
 </head>
 <body>
-    <div class="background-container" id="backgroundContainer">
-        <svg width="100%" height="100%" viewBox="0 0 800 500">
-            <!-- 눈 배경 -->
-            <path d="M100,250 Q400,50 700,250 Q400,450 100,250 Z" 
-                  fill="white" 
-                  stroke="rgb(0,255,200)" 
-                  stroke-width="10"
-                  stroke-linejoin="round"
-                  stroke-linecap="round"/>
-            <!-- 속눈썹 -->
-            <line x1="280" y1="130" x2="250" y2="70"
-                  stroke="rgb(0,255,200)" 
-                  stroke-width="10"
-                  stroke-linecap="round"/>
-            <line x1="400" y1="110" x2="400" y2="50"
-                  stroke="rgb(0,255,200)" 
-                  stroke-width="10"
-                  stroke-linecap="round"/>
-            <line x1="520" y1="130" x2="550" y2="70"
-                  stroke="rgb(0,255,200)" 
-                  stroke-width="10"
-                  stroke-linecap="round"/>
-            <!-- 동공 -->
-            <circle cx="400" cy="250" r="80" 
-                    fill="black"/>
-        </svg>
-    </div>
+    <div class="text-container" id="textContainer"></div>
 
-    <div class="text-container" id="textContainer">
-        <svg width="0" height="0">
+    <div class="background-container" id="backgroundContainer">
+        <svg width="100%" height="100%" viewBox="0 0 1000 800">
             <defs>
-                <mask id="circleMask">
-                    <rect width="800" height="500" fill="black"/>
-                    <circle cx="400" cy="250" r="80" fill="white"/>
+                <mask id="eyeMask">
+                    <rect width="1000" height="800" fill="white"/>
+                    <circle cx="500" cy="400" r="150" fill="black"/>
                 </mask>
             </defs>
+            <!-- 눈 배경 -->
+            <path d="M50,400 Q500,50 950,400 Q500,750 50,400 Z" 
+                  fill="white" 
+                  stroke="rgb(0,255,200)" 
+                  stroke-width="12"
+                  stroke-linejoin="round"
+                  stroke-linecap="round"
+                  mask="url(#eyeMask)"/>
+            <!-- 속눈썹 -->
+            <line x1="250" y1="220" x2="200" y2="120"
+                  stroke="rgb(0,255,200)" 
+                  stroke-width="15"
+                  stroke-linecap="round"/>
+            <line x1="500" y1="180" x2="500" y2="80"
+                  stroke="rgb(0,255,200)" 
+                  stroke-width="15"
+                  stroke-linecap="round"/>
+            <line x1="750" y1="220" x2="800" y2="120"
+                  stroke="rgb(0,255,200)" 
+                  stroke-width="15"
+                  stroke-linecap="round"/>
         </svg>
     </div>
 
@@ -336,13 +353,14 @@
             end: '#ffffff'
         };
 
-        function createMovingText(text) {
+        function createMovingText(text, messageId) {
             const element = document.createElement('div');
             element.className = 'moving-text';
             element.textContent = text;
+            element.dataset.messageId = messageId; // 메시지 ID 설정
             
-            // 랜덤 크기 설정 (36px ~ 120px)
-            const randomSize = Math.floor(Math.random() * (120 - 36 + 1)) + 36;
+            // 랜덤 크기 설정 (25px ~ 80px)
+            const randomSize = Math.floor(Math.random() * (80 - 25 + 1)) + 25;
             element.style.fontSize = `${randomSize}px`;
             
             // 랜덤 효과 적용
@@ -352,11 +370,13 @@
             
             // 시작 위치 설정 (눈의 흰색 부분 안에서)
             const startFromLeft = Math.random() < 0.5;
-            const centerY = 250;
-            // 글자 크기에 따른 상하 위치 조정
             const fontSize = parseInt(element.style.fontSize);
-            const yMin = 130 + fontSize/2; // 텍스트 크기를 고려한 위쪽 경계를 더 위로 조정
-            const yMax = 290 - fontSize/2; // 텍스트 크기를 고려한 아래쪽 경계
+            // 동공의 실제 중심점 사용 (SVG의 circle 중심과 동일하게)
+            const centerY = 350; // 중심점을 위로 조정
+            // 텍스트가 눈 모양 안에서 자연스럽게 움직이도록 범위 조정
+            const safeMargin = fontSize * 0.7; // 여유 공간을 약간 줄임
+            const yMin = centerY - 250 + safeMargin;  // 위쪽 제한 더 높게 조정
+            const yMax = centerY + 200 - safeMargin;  // 아래쪽 제한
             const verticalPosition = Math.random() * (yMax - yMin) + yMin;
 
             // 그라데이션 적용
@@ -371,26 +391,28 @@
             // 실제 텍스트 너비 계산
             const textWidth = element.offsetWidth;
             
+            const margin = element.offsetWidth / 2; // 텍스트 너비의 절반만큼 여유 공간
+
             if (startFromLeft) {
-                element.style.left = '100px'; // 눈의 왼쪽 경계
-                let position = 100;
+                element.style.left = (400 - margin) + 'px'; // 왼쪽 경계
+                let position = 400 - margin;
                 function animate() {
-                    position += 2; // 이동 속도
+                    position += 1.5; // 이동 속도
                     element.style.left = position + 'px';
-                    if (position > 700) { // 눈의 오른쪽 경계
-                        position = 100;
+                    if (position > 600 - margin) { // 오른쪽 경계
+                        position = 400 - margin;
                     }
                     requestAnimationFrame(animate);
                 }
                 animate();
             } else {
-                element.style.left = '700px'; // 눈의 오른쪽 경계
-                let position = 700;
+                element.style.left = (600 - margin) + 'px'; // 오른쪽 경계
+                let position = 600 - margin;
                 function animate() {
-                    position -= 2; // 이동 속도
+                    position -= 1.5; // 이동 속도
                     element.style.left = position + 'px';
-                    if (position < 100) { // 눈의 왼쪽 경계
-                        position = 700;
+                    if (position < 400 - margin) { // 왼쪽 경계
+                        position = 600 - margin;
                     }
                     requestAnimationFrame(animate);
                 }
@@ -406,18 +428,34 @@
         // 메시지 히스토리 저장
         let messages = [];
 
-        function addToHistory(text) {
+        function addToHistory(text, messageId) {
             const now = new Date();
             const timeStr = now.toLocaleTimeString();
-            messages.push({ text, time: timeStr });
+            messages.push({ id: messageId, text, time: timeStr });
             
             // 히스토리 아이템 생성
             const item = document.createElement('div');
             item.className = 'history-item';
+            item.dataset.id = messageId;
             item.innerHTML = `
                 <span>${text}</span>
                 <div class="timestamp">${timeStr}</div>
+                <button class="delete-button" title="Delete message"><i class="fas fa-xmark"></i></button>
             `;
+            
+            // 삭제 버튼에 이벤트 리스너 추가
+            const deleteButton = item.querySelector('.delete-button');
+            deleteButton.addEventListener('click', () => {
+                // 메시지 배열에서 제거
+                messages = messages.filter(msg => msg.id !== messageId);
+                // 히스토리 항목 제거
+                item.remove();
+                // 동공 안의 떠다니는 텍스트 제거
+                const floatingText = document.querySelector(`.moving-text[data-message-id="${messageId}"]`);
+                if (floatingText) {
+                    floatingText.remove();
+                }
+            });
             
             const historyList = document.querySelector('.history-list');
             historyList.insertBefore(item, historyList.firstChild);
@@ -426,8 +464,9 @@
         function handleSend() {
             const text = textInput.value.trim();
             if (text) {
-                createMovingText(text);
-                addToHistory(text);
+                const messageId = Date.now().toString();
+                createMovingText(text, messageId);
+                addToHistory(text, messageId);
                 textInput.value = '';
             }
         }
